@@ -14,6 +14,7 @@ import axios from 'axios';
 
 const EMAIL = 'gyopasaa@gmail.com';
 const PASSWORD = 'gabo1234';
+const URL = 'http://localhost:3001/rickandmorty/login/';
 
 function App() {
    const location = useLocation();
@@ -22,26 +23,38 @@ function App() {
    const [characters, setCharacters] = useState([]);
    const [access, setAccess] = useState(false);
 
-   const login = (userData) => {
-      if(userData.email === EMAIL && userData.password === PASSWORD){
-         setAccess(true);
-         navigate('/home');
+   const login = async (userData) => {
+
+      try {
+         const { email, password } = userData;
+         const { data } = await axios(URL + `?email=${email}&password=${password}`)
+         const { access } = data;
+
+            setAccess(access);
+            access && navigate('/home');
+         
+      } catch (error) {
+         console.log(error.message)
       }
    }
+
 
    useEffect(() => {
       !access && navigate('/')
    }, [access])
 
-   const onSearch = (id) => {
-      axios(`http://localhost:3001/rickandmorty/character/${id}`)
-         .then(({ data }) => {
-            if (data.name) {
-               setCharacters((oldChars) => [...oldChars, data]);
-            } else {
-               window.alert('¡No hay personajes con este ID!');
-            }
-         });
+   const onSearch = async (id) => {
+
+      try {
+
+         const { data } = await axios(`http://localhost:3001/rickandmorty/character/${id}`);
+         if (data.name) {
+            setCharacters((oldChars) => [...oldChars, data]);
+         }
+         
+      } catch (error) {
+         alert('¡No hay personajes con este ID!')
+      }
    }
 
    const onClose = (id) => {
@@ -58,12 +71,12 @@ function App() {
          }
          <Routes>
             <Route path='/' element={<Form login={login} />} />
-            <Route path='/home' element={ <Cards characters={characters} onClose={onClose}/> } />
-            <Route path='/about' element={<About/>} />
-            <Route path='/detail/:id' element={<Detail/>} />
-            <Route path='/favorites' element={<Favorites/>} />
+            <Route path='/home' element={<Cards characters={characters} onClose={onClose} />} />
+            <Route path='/about' element={<About />} />
+            <Route path='/detail/:id' element={<Detail />} />
+            <Route path='/favorites' element={<Favorites />} />
          </Routes>
-         
+
       </div>
    );
 }
